@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package pbd.dep_example;
+
+message DependencyMessage {
+    int64 c = 1;
+    double d = 2;
+}

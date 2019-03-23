@@ -1,0 +1,6 @@
+BasedOnStyle: Google
+IndentWidth: 4
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: MultiLine
+ColumnLimit: 100

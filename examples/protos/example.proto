@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package pbd.example;
+
+import "dep_example.proto";
+
+message SimpleMessage {
+    int64 a = 1;
+    OtherMessage m = 2;
+    pbd.dep_example.DependencyMessage d = 3;
+    SimpleEnum e = 4;
+    repeated double f = 5;
+}
+
+message OtherMessage {
+    int32 b = 1;
+}
+
+message UnusedMessage {
+    int32 c = 1;
+}
+
+enum SimpleEnum {
+    A = 0;
+    B = 1;
+}

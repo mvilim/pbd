@@ -1,0 +1,4 @@
+build/
+compile_commands.json
+rc.sh
+cdb.sh
