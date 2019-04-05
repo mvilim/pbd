@@ -6,6 +6,8 @@
 // pbd is licensed under the GPL3, a copy of which can be
 // found here: https://github.com/mvilim/pbd/blob/master/LICENSE
 
+#pragma once
+
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/message.h>
