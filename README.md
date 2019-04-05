@@ -1,3 +1,13 @@
+<!---
+Copyright (c) 2019 Michael Vilim
+
+This file is part of the pbd library. It is currently hosted at
+https://github.com/mvilim/pbd
+
+pbd is licensed under the GPL3, a copy of which can be
+found here: https://github.com/mvilim/pbd/blob/master/LICENSE
+-->
+
 # PBD data format
 
 PBD is a data (file and stream) format for transmitting self-describing [Protobuf](https://developers.google.com/protocol-buffers/) messages. Each PBD stream encodes a sequence of messages of the same Protobuf message type.
@@ -42,4 +52,4 @@ You can test by running the `example` binary produced (which will write an examp
 
 ## License
 
-This project is licensed under the [GPL3](https://github.com/mvilim/pbd/blob/master/LICENSE) license. The Protobuf license can be found [here](https://github.com/mvilim/pbd/blob/master/thirdparty/protobuf/LICENSE).
+This project is licensed under the [GPL3](https://github.com/mvilim/pbd/blob/master/LICENSE). The Protobuf license can be found [here](https://github.com/mvilim/pbd/blob/master/thirdparty/protobuf/LICENSE).

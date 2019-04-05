@@ -1,3 +1,11 @@
+// Copyright (c) 2019 Michael Vilim
+//
+// This file is part of the pbd library. It is currently hosted at
+// https://github.com/mvilim/pbd
+//
+// pbd is licensed under the GPL3, a copy of which can be
+// found here: https://github.com/mvilim/pbd/blob/master/LICENSE
+
 #include <pbd/pbd.hpp>
 
 #include <example.pb.h>
