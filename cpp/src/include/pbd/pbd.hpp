@@ -48,7 +48,7 @@ struct CompareFileDescriptorName {
     }
 };
 
-bool fileEquals(const pb::FileDescriptor* a, const pb::FileDescriptor* b) {
+static bool fileEquals(const pb::FileDescriptor* a, const pb::FileDescriptor* b) {
     CompareFileDescriptorName c;
     return c(a, b) == false && c(b, a) == false;
 }
@@ -153,7 +153,7 @@ class ProtoDependencyResolver {
     }
 };
 
-void writeLEB128(uint64_t val, ostream& s) {
+static void writeLEB128(uint64_t val, ostream& s) {
     while (val >= 128) {
         uint8_t c = val | 0x80;
         s.put(c);
@@ -162,7 +162,7 @@ void writeLEB128(uint64_t val, ostream& s) {
     s.put(val);
 }
 
-uint64_t readLEB128(istream& s) {
+static uint64_t readLEB128(istream& s) {
     uint64_t val = 0;
     uint16_t counter = 0;
     unsigned char c;
