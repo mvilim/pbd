@@ -20,7 +20,8 @@ namespace pb = google::protobuf;
 
 using std::string;
 
-int main() {
+void test_simple_message()
+{
     pbde::SimpleMessage message;
     message.set_a(13);
     message.mutable_m()->set_b(23);
@@ -49,6 +50,33 @@ int main() {
     if (m) {
         throw std::runtime_error("End of stream did not return empty message pointer");
     }
+}
+
+void test_empty_message()
+{
+    pbde::EmptyMessage message;
+
+    std::ostringstream oss;
+    pbd::PBDWriter pw(oss);
+    pw.write(message);
+    pw.write(message);
+    string ss = oss.str();
+    std::istringstream iss(ss);
+    pbd::PBDReader pr(iss);
+    unique_ptr<pb::Message> m = pr.readMessage();
+    m = pr.readMessage();
+    if (!m) {
+        throw std::runtime_error("Second message should be available");
+    }
+    pr.readMessage(m);
+    if (m) {
+        throw std::runtime_error("End of stream did not return empty message pointer");
+    }
+}
+
+int main() {
+    test_simple_message();
+    test_empty_message();
 
     return 0;
 }

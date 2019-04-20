@@ -10,6 +10,8 @@
 
 #include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/message.h>
 #include <array>
 #include <iostream>
@@ -33,6 +35,8 @@ const uint64_t PBD_VERSION = 0;
 namespace pbd {
 
 namespace pb = google::protobuf;
+
+using Limit = pb::io::CodedInputStream::Limit;
 
 struct CompareFileDescriptorName {
     bool operator()(const pb::FileDescriptor* a, const pb::FileDescriptor* b) const {
@@ -238,13 +242,15 @@ class PBDWriter {
 
 class PBDReader {
     bool headerRead = false;
-    istream& in;
+    pb::io::IstreamInputStream iis;
+    pb::io::CodedInputStream cis;
     pb::DescriptorPool pool;
     pb::DynamicMessageFactory fact;
+    const pb::Descriptor* desc;
     const pb::Message* prototype;
 
    public:
-    PBDReader(istream& in) : in(in) {}
+    PBDReader(istream& in) : iis(&in), cis(&iis) {}
 
     // need to add a note that the reader must be kept alive while using the messages from it, as
     // they share some info in the dynamic message factory)
@@ -252,8 +258,8 @@ class PBDReader {
         checkHeader();
 
         unique_ptr<pb::Message> m = unique_ptr<pb::Message>(prototype->New());
-        readMessage(m);
-        return std::move(m);
+        readMessageAssumeHeader(m);
+        return m;
     }
 
     // this is if we want to simply re-read into the same message
@@ -262,14 +268,15 @@ class PBDReader {
     void readMessage(unique_ptr<pb::Message>& message) {
         checkHeader();
 
-        if (isEndOfStream()) {
-            message.reset();
-            return;
-        }
-        uint64_t protoMessageSize = readLEB128(in);
-        string protoMessageStr(protoMessageSize, 0);
-        in.read(&protoMessageStr[0], protoMessageSize);
-        message->ParseFromString(protoMessageStr);
+        readMessageAssumeHeader(message);
+    }
+
+    const pb::Descriptor* descriptor() {
+        return desc;
+    }
+
+    const pb::io::CodedInputStream* stream() {
+        return &cis;
     }
 
    private:
@@ -280,43 +287,51 @@ class PBDReader {
         }
     }
 
-    bool isEndOfStream() {
-        in.peek();
-        if (in.eof()) {
-            return true;
+    void readMessageAssumeHeader(unique_ptr<pb::Message>& message) {
+        uint64_t protoMessageSize;
+        if (!cis.ReadVarint64(&protoMessageSize)) {
+            message.reset();
+            return;
         }
-        return false;
+
+        Limit limit = cis.PushLimit(protoMessageSize);
+        message->ParseFromCodedStream(&cis);
+        cis.CheckEntireMessageConsumedAndPopLimit(limit);
     }
 
     void readHeader() {
         unsigned char magic[sizeof(MAGIC_PBD_BYTES)];
-        in.read((char*)magic, sizeof(MAGIC_PBD_BYTES));
+        cis.ReadRaw(&magic, sizeof(MAGIC_PBD_BYTES));
         if (!std::equal(std::begin(magic), std::end(magic), std::begin(MAGIC_PBD_BYTES))) {
             throw std::runtime_error(
                 "Magic PBD bytes do not match -- data is either corrupt or not a PBD file");
         }
 
-        uint64_t pbdVersion = readLEB128(in);
+        uint64_t pbdVersion;
+        cis.ReadVarint64(&pbdVersion);
         if (pbdVersion != PBD_VERSION) {
             throw std::runtime_error("PBD file version not supported");
         }
 
-        uint64_t numProto = readLEB128(in);
+        uint64_t numProto;
+        cis.ReadVarint64(&numProto);
         for (size_t i = 0; i < numProto; i++) {
-            uint64_t protoFileSize = readLEB128(in);
+            uint64_t protoFileSize;
+            cis.ReadVarint64(&protoFileSize);
             pb::FileDescriptorProto parsedProtoFile;
-            string protoFileStr(protoFileSize, 0);
-            in.read(&protoFileStr[0], protoFileSize);
-            parsedProtoFile.ParseFromString(protoFileStr);
+            Limit limit = cis.PushLimit(protoFileSize);
+            parsedProtoFile.ParseFromCodedStream(&cis);
+            cis.CheckEntireMessageConsumedAndPopLimit(limit);
             pool.BuildFile(parsedProtoFile);
         }
 
-        uint64_t messageNameLength = readLEB128(in);
+        uint64_t messageNameLength;
+        cis.ReadVarint64(&messageNameLength);
         string name(messageNameLength, 0);
-        in.read(&name[0], messageNameLength);
-        const pb::Descriptor* messageDescriptor = pool.FindMessageTypeByName(name);
+        cis.ReadRaw(&name[0], messageNameLength);
+        desc = pool.FindMessageTypeByName(name);
 
-        prototype = fact.GetPrototype(messageDescriptor);
+        prototype = fact.GetPrototype(desc);
     }
 };
 
