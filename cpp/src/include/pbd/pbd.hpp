@@ -241,7 +241,6 @@ class PBDWriter {
 };
 
 class PBDReader {
-    bool headerRead = false;
     pb::io::IstreamInputStream iis;
     pb::io::CodedInputStream cis;
     pb::DescriptorPool pool;
@@ -250,15 +249,16 @@ class PBDReader {
     const pb::Message* prototype;
 
    public:
-    PBDReader(istream& in) : iis(&in), cis(&iis) {}
+    // should add support from a direct file stream
+    PBDReader(istream& in) : iis(&in), cis(&iis) {
+        readHeader();
+    }
 
     // need to add a note that the reader must be kept alive while using the messages from it, as
     // they share some info in the dynamic message factory)
     unique_ptr<pb::Message> readMessage() {
-        checkHeader();
-
         unique_ptr<pb::Message> m = unique_ptr<pb::Message>(prototype->New());
-        readMessageAssumeHeader(m);
+        readMessage(m);
         return m;
     }
 
@@ -266,28 +266,6 @@ class PBDReader {
     //
     // perhaps we should refactor so that the same call is used for both cases? pointer to pointer?
     void readMessage(unique_ptr<pb::Message>& message) {
-        checkHeader();
-
-        readMessageAssumeHeader(message);
-    }
-
-    const pb::Descriptor* descriptor() {
-        return desc;
-    }
-
-    const pb::io::CodedInputStream* stream() {
-        return &cis;
-    }
-
-   private:
-    void checkHeader() {
-        if (!headerRead) {
-            readHeader();
-            headerRead = true;
-        }
-    }
-
-    void readMessageAssumeHeader(unique_ptr<pb::Message>& message) {
         uint64_t protoMessageSize;
         if (!cis.ReadVarint64(&protoMessageSize)) {
             message.reset();
@@ -299,6 +277,15 @@ class PBDReader {
         cis.CheckEntireMessageConsumedAndPopLimit(limit);
     }
 
+    const pb::Descriptor* descriptor() {
+        return desc;
+    }
+
+    pb::io::CodedInputStream& stream() {
+        return cis;
+    }
+
+   private:
     void readHeader() {
         unsigned char magic[sizeof(MAGIC_PBD_BYTES)];
         cis.ReadRaw(&magic, sizeof(MAGIC_PBD_BYTES));
