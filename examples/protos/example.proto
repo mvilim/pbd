@@ -10,6 +10,8 @@ message SimpleMessage {
     pbd.dep_example.DependencyMessage d = 3;
     SimpleEnum e = 4;
     repeated double f = 5;
+    string s = 6;
+    // repeated OtherMessage rm = 7; // need to fix bug with repeated dependencies
 }
 
 message OtherMessage {
