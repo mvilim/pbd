@@ -30,6 +30,7 @@ void test_simple_message()
     message.set_e(pbde::SimpleEnum::B);
     message.add_f(2.3);
     message.add_f(3.3);
+    message.set_s("test");
 
     std::ostringstream oss;
     std::ofstream ofs("example.pbd");

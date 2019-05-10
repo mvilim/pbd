@@ -11,7 +11,9 @@ message SimpleMessage {
     SimpleEnum e = 4;
     repeated double f = 5;
     string s = 6;
-    // repeated OtherMessage rm = 7; // need to fix bug with repeated dependencies
+    string sd = 7;
+    // repeated OtherMessage rm = 8; // need to fix bug with repeated dependencies
+    // need to fix bug with enum dependencies
 }
 
 message OtherMessage {
