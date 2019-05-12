@@ -6,3 +6,8 @@ message DependencyMessage {
     int64 c = 1;
     double d = 2;
 }
+
+enum DependencyEnum {
+    DE0 = 0;
+    DE1 = 1;
+}

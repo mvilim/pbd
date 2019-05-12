@@ -16,6 +16,8 @@
 #include <fstream>
 
 namespace pbde = pbd::example;
+namespace pbdde = pbd::dep_example;
+
 namespace pb = google::protobuf;
 
 using std::string;
@@ -31,6 +33,9 @@ void test_simple_message()
     message.add_f(2.3);
     message.add_f(3.3);
     message.set_s("test");
+    message.set_de(pbdde::DependencyEnum::DE1);
+    message.add_rm()->set_b(11);
+    message.add_rm()->set_b(22);
 
     std::ostringstream oss;
     std::ofstream ofs("example.pbd");
