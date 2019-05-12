@@ -98,13 +98,17 @@ class FileBuilder {
     }
 
     void addMessage(const pb::Descriptor* messageDesc) {
-        addedDescriptors.insert(messageDesc);
-        messageDesc->CopyTo(fileProto.add_message_type());
+        if (!addedDescriptors.count(messageDesc)) {
+            addedDescriptors.insert(messageDesc);
+            messageDesc->CopyTo(fileProto.add_message_type());
+        }
     }
 
     void addEnum(const pb::EnumDescriptor* enumDesc) {
-        addedEnumDescriptors.insert(enumDesc);
-        enumDesc->CopyTo(fileProto.add_enum_type());
+        if (!addedEnumDescriptors.count(enumDesc)) {
+            addedEnumDescriptors.insert(enumDesc);
+            enumDesc->CopyTo(fileProto.add_enum_type());
+        }
     }
 
     const pb::FileDescriptorProto& file() const {
