@@ -133,11 +133,15 @@ class ProtoDependencyResolver {
             if (field->type() == pb::FieldDescriptor::Type::TYPE_MESSAGE) {
                 addMessage(field->message_type());
                 const pb::FileDescriptor* fieldFile = field->message_type()->file();
-                if (!fileEquals(field->message_type()->file(), message->file())) {
+                if (!fileEquals(fieldFile, message->file())) {
                     fb.addDependency(fieldFile);
                 }
             } else if (field->type() == pb::FieldDescriptor::Type::TYPE_ENUM) {
                 addEnum(field->enum_type());
+                const pb::FileDescriptor* fieldFile = field->enum_type()->file();
+                if (!fileEquals(fieldFile, message->file())) {
+                    fb.addDependency(fieldFile);
+                }
             }
         }
     }
