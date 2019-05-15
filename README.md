@@ -61,4 +61,4 @@ You can test by running the `example` binary produced (which will write an examp
 
 ## License
 
-This project is licensed under the [GPL3](https://github.com/mvilim/pbd/blob/master/LICENSE). The Protobuf license can be found [here](https://github.com/mvilim/pbd/blob/master/thirdparty/protobuf/LICENSE).
+This project is licensed under the [Apache License 2.0](https://github.com/mvilim/pbd/blob/master/LICENSE). The Protobuf license can be found [here](https://github.com/mvilim/pbd/blob/master/thirdparty/protobuf/LICENSE).
