@@ -127,47 +127,67 @@ class FileBuilder {
 
 class ProtoDependencyResolver {
     map<const pb::FileDescriptor*, FileBuilder, CompareFileDescriptorName> fileMap;
+    vector<const pb::FileDescriptor*> depsOrder;
 
    public:
     void addMessage(const pb::Descriptor* message) {
         const pb::FileDescriptor* fileDesc = message->file();
+        bool shouldAdd = false;
         if (!fileMap.count(fileDesc)) {
             fileMap.emplace(fileDesc, fileDesc);
+            shouldAdd = true;
         }
         FileBuilder& fb = fileMap.at(fileDesc);
         fb.addMessage(message);
 
-        for (size_t i = 0; i < message->field_count(); i++) {
+        for (int i = 0; i < message->field_count(); i++) {
             const pb::FieldDescriptor* field = message->field(i);
             if (field->type() == pb::FieldDescriptor::Type::TYPE_MESSAGE) {
                 addMessage(field->message_type());
                 const pb::FileDescriptor* fieldFile = field->message_type()->file();
-                if (!fileEquals(fieldFile, message->file())) {
+                if (!fileEquals(field->message_type()->file(), message->file())) {
                     fb.addDependency(fieldFile);
                 }
             } else if (field->type() == pb::FieldDescriptor::Type::TYPE_ENUM) {
                 addEnum(field->enum_type());
                 const pb::FileDescriptor* fieldFile = field->enum_type()->file();
-                if (!fileEquals(fieldFile, message->file())) {
+                if (!fileEquals(field->enum_type()->file(), message->file())) {
                     fb.addDependency(fieldFile);
                 }
             }
+        }
+
+        if (shouldAdd)
+        {
+            addDependency(fileDesc);
         }
     }
 
     void addEnum(const pb::EnumDescriptor* enumDesc) {
         const pb::FileDescriptor* fileDesc = enumDesc->file();
+        bool shouldAdd = false;
         if (!fileMap.count(fileDesc)) {
             fileMap.emplace(fileDesc, fileDesc);
+            shouldAdd = true;
         }
         FileBuilder& fb = fileMap.at(fileDesc);
         fb.addEnum(enumDesc);
+
+        if (shouldAdd)
+        {
+            addDependency(fileDesc);
+        }
+    }
+
+    void addDependency(const pb::FileDescriptor* dep) {
+        depsOrder.push_back(dep);
     }
 
     vector<const pb::FileDescriptorProto*> files() {
         vector<const pb::FileDescriptorProto*> v;
-        for (const auto& fb : fileMap) {
-            v.push_back(&fb.second.file());
+        for (auto dep : depsOrder)
+        {
+            v.push_back(&fileMap.at(dep).file());
         }
 
         return v;
